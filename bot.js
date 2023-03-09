@@ -5,12 +5,14 @@ require("dotenv").config();//private key is in .env file instead of putting it i
 //---  Modify these --------
 const TEST = false;// dont actually buy or sell
 const TARGETTOKEN = null; // put address of token you just want to front run.  null for any token
+
 const WHALE_SIZE = 1;// Only front run whales buying this many BNB or more
 const BUY_BNB_AMOUNT = 0.001;// How much BNB you want to use for token front run
 const BUY_SLIPPAGE = 25;//1;// this is a whole number percentage i.e. 1 = 1%  Sets the minimum percentage of the token received before it reverts.  ZERO means you are willing to not get any tokens.  1% means you will only miss 1% of the toal that you want.  50% meams ypou are willing to only get as low as 50% of the tokens owed
-const SELL_SLIPPAGE = 25;
-const BUY_GAS_BOOST = 5000000000; 
-const BUY_GASLIMIT_BOOST = 2;
+const SELL_SLIPPAGE = 25;// how much less off the BNB you are willing to not get when you sell tokens
+const BUY_GAS_BOOST = 5000000000; // this is on 10^9 digits.  it equals 5 gwei.  this will be added to the gasPrice to "jackup" the gasprice more
+const BUY_GASLIMIT_BOOST = 2;// This is a multiplier to multiply the gaslimit... also helps to jackup the gas price
+
 const BLACKLIST_TOKEN = '0x55d398326f99059fF775485246999027B3197955';// BUSD - we dont want this
 //--------------------------
 //--------------------------
