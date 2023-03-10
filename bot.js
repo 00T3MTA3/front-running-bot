@@ -8,8 +8,8 @@ const TARGETTOKEN = null; // put address of token you just want to front run.  n
 
 const WHALE_SIZE = 1;// Only front run whales buying this many BNB or more
 const BUY_BNB_AMOUNT = 0.001;// How much BNB you want to use for token front run
-const BUY_SLIPPAGE = 25;//1;// this is a whole number percentage i.e. 1 = 1%  Sets the minimum percentage of the token received before it reverts.  ZERO means you are willing to not get any tokens.  1% means you will only miss 1% of the toal that you want.  50% meams ypou are willing to only get as low as 50% of the tokens owed
-const SELL_SLIPPAGE = 25;// how much less off the BNB you are willing to not get when you sell tokens
+const BUY_SLIPPAGE = 0;//25;//1;// this is a whole number percentage i.e. 1 = 1%  Sets the minimum percentage of the token received before it reverts.  ZERO means you are willing to not get any tokens.  1% means you will only miss 1% of the toal that you want.  50% meams ypou are willing to only get as low as 50% of the tokens owed
+const SELL_SLIPPAGE = 0;//25;// how much less off the BNB you are willing to not get when you sell tokens
 const BUY_GAS_BOOST = 5000000000; // this is on 10^9 digits.  it equals 5 gwei.  this will be added to the gasPrice to "jackup" the gasprice more
 const BUY_GASLIMIT_BOOST = 2;// This is a multiplier to multiply the gaslimit... also helps to jackup the gas price
 
@@ -24,7 +24,7 @@ const Web3=  require("web3")
 const ethers = require("ethers");
 const app = express();
 const PORT = process.env.PORT || 3888;
-var wss = "wss://prettiest-chaotic-road.bsc.discover.quiknode.pro/343ca333a4a630c483e1747f8968cb2a65b28ff9/";//"wss://polished-capable-tab.bsc.discover.quiknode.pro/d420d1e00e9ce18def89cb781f26624977ef3989/";
+var wss = "wss://clean-radial-energy.bsc.discover.quiknode.pro/d8b868a31b38349cd6f140d74e4cc97826324b7f/";//"wss://clean-radial-energy.bsc.discover.quiknode.pro/d8b868a31b38349cd6f140d74e4cc97826324b7f/";//"wss://prettiest-chaotic-road.bsc.discover.quiknode.pro/343ca333a4a630c483e1747f8968cb2a65b28ff9/";//"wss://polished-capable-tab.bsc.discover.quiknode.pro/d420d1e00e9ce18def89cb781f26624977ef3989/";
 const web3 = new Web3(wss);
 let processing = false;
 
@@ -115,7 +115,9 @@ const buyToken = async(account,tokenContract,gasLimit,gasPrice, swapFunc)=>{
     let tx;
     if(swapFunc == 1)
     {
-      const amounts = await router(account).getAmountsOut(amountIn, [BNB_CONTRACT, tokenContract]);
+      //console.log("118             : getAmountsOut");
+      //const amounts = await router(account).getAmountsOut(amountIn, [BNB_CONTRACT, tokenContract]);
+      console.log("120    swapping : swapExactETHForTokens");
       tx = await router(account).swapExactETHForTokens(
         1,
         [BNB_CONTRACT, tokenContract],
@@ -130,6 +132,7 @@ const buyToken = async(account,tokenContract,gasLimit,gasPrice, swapFunc)=>{
     }
     else if(swapFunc == 2)
     {
+      console.log("135    swapfunc : swapExactETHForTokensSupportingFeeOnTransferTokens");
       tx = await router(account).swapExactETHForTokensSupportingFeeOnTransferTokens(
         amountOutMin,
         [BNB_CONTRACT, tokenContract],
@@ -144,7 +147,9 @@ const buyToken = async(account,tokenContract,gasLimit,gasPrice, swapFunc)=>{
     }
     else if(swapFunc == 3)//swapETHForExactTokens
     {
+      console.log("150             : getAmountsOut");
       const amounts = await router(account).getAmountsOut(amountIn, [BNB_CONTRACT, tokenContract]);
+      console.log("152    swapfunc : swapETHForExactTokens");
       tx = await router(account).swapETHForExactTokens(
         amounts[1],
         [BNB_CONTRACT, tokenContract],
@@ -158,12 +163,12 @@ const buyToken = async(account,tokenContract,gasLimit,gasPrice, swapFunc)=>{
       );
     }
     
-    console.log("158: wait on tx : ",tx.hash);
-    console.log("159:      value : ",ethers.utils.formatUnits(tx.value));
-    console.log("160:   gasprice : ",ethers.utils.formatUnits(tx.gasPrice,'gwei'));
-    console.log("161:   gasLimit : ",ethers.utils.formatUnits(tx.gasLimit,'ether'));
+    console.log("166: wait on tx : ",tx.hash);
+    console.log("167:      value : ",ethers.utils.formatUnits(tx.value));
+    console.log("168:   gasprice : ",ethers.utils.formatUnits(tx.gasPrice,'gwei'));
+    console.log("169:   gasLimit : ",tx.gasLimit.toString());
     const receipt = await tx.wait();
-    console.log("163: tx received");
+    console.log("171: tx received");
     if (receipt && receipt.blockNumber && receipt.status === 1) { // 0 - failed, 1 - success
       console.log(`Transaction https://bscscan.com/tx/${receipt.transactionHash} mined, status success`);
     } else if (receipt && receipt.blockNumber && receipt.status === 0) {
@@ -183,21 +188,21 @@ const sellToken = async(account,tokenContract,gasLimit,gasPrice,value=99)=>{
   let amountOutMin = 0;
   const slippage = SELL_SLIPPAGE;//1;
   const amountIn = tokenBalance.mul(value).div(100)
-  console.log("183     amountIn : ",ethers.utils.formatUnits(amountIn,'ether'), "tokenBalance:",ethers.utils.formatUnits(tokenBalance,'ether'), "token:",tokenContract)
+  console.log("191     amountIn : ",ethers.utils.formatUnits(amountIn,'ether'), "tokenBalance:",ethers.utils.formatUnits(tokenBalance,'ether'), "token:",tokenContract)
   const amounts = await router(account).getAmountsOut(amountIn, [tokenContract,BNB_CONTRACT]);
   if (parseInt(slippage) !== 0) {
     amountOutMin = amounts[1].sub(amounts[1].mul(`${slippage}`).div(100));
   } else {
     amountOutMin = amounts[1]
   }
-  console.log("*190amountOutMin : ",ethers.utils.formatUnits(amountOutMin,'ether'),tokenContract);
+  console.log("*198amountOutMin : ",ethers.utils.formatUnits(amountOutMin,'ether'),tokenContract);
   console.log("  accountAddress : ",accountAddress, "date:", (Math.round(Date.now() / 1000) + (60 * 10)));
   console.log("        gasprice : ",ethers.utils.formatUnits(gasPrice,'gwei'), "gaslimit : ",gasLimit.toString());
   if(!TEST){
     const approve = await sellTokenContract.approve(PAN_ROUTER_ADDRESS, amountIn);
-    console.log("195: wait approve...")
+    console.log("203: wait approve...")
     const receipt_approve = await approve.wait();
-    console.log("197: approve finished:", receipt_approve.transactionHash, "gas used:",receipt_approve.gasUsed.toString(), "cumalGas:", receipt_approve.cumulativeGasUsed.toString(), "effectGas:", receipt_approve.effectiveGasPrice, "block:", receipt_approve.blockNumber, "status:",receipt_approve.status)
+    console.log("205: approve finished:", receipt_approve.transactionHash, "gas used:",receipt_approve.gasUsed.toString(), "cumalGas:", receipt_approve.cumulativeGasUsed.toString(), "effectGas:", receipt_approve.effectiveGasPrice, "block:", receipt_approve.blockNumber, "status:",receipt_approve.status)
     if (receipt_approve && receipt_approve.blockNumber && receipt_approve.status === 1) { 
       console.log(`Approved https://bscscan.com/tx/${receipt_approve.transactionHash}`);
       const swap_txn = await contract.swapExactTokensForETHSupportingFeeOnTransferTokens(
@@ -210,9 +215,9 @@ const sellToken = async(account,tokenContract,gasLimit,gasPrice,value=99)=>{
           'gasPrice': gasPrice,
         }
       )
-      console.log("210: wait tx...", swap_txn)
+      console.log("218: wait tx...", swap_txn)
       const receipt = await swap_txn.wait();
-      console.log("212: tx finished",tokenContract)
+      console.log("220: tx finished",tokenContract)
       if (receipt && receipt.blockNumber && receipt.status === 1) { // 0 - failed, 1 - success
         console.log(`Transaction https://bscscan.com/tx/${receipt.transactionHash} mined, status success`);
       } else if (receipt && receipt.blockNumber && receipt.status === 0) {
@@ -264,15 +269,16 @@ customWsProvider.on("pending", (tx) => {
       } catch (error) {
         console.log("================= final err : swapETHForExactTokens =============", error,transaction);//,transaction);
         processing = false;
+        return;
       }
       }
       }
 
       //for now, just do swapExactETHForTokensSupportingFeeOnTransferTokens -- gotta debug the other ones later
-      if(swapFunc != 2){
+      /*if(swapFunc != 2){
         processing = false; 
         return;
-      }
+      }*/
 
       if(result.length>0){
         let tokenAddress = ""
@@ -286,7 +292,7 @@ customWsProvider.on("pending", (tx) => {
             return;
           }
 
-          console.log("------280:value : (",value,") -------------------");
+          console.log("------295:value : (",value,") -------------------");
           console.log("          token : (", tokenAddress,")" );
           console.log("       function : ", swapName)
           console.log("           from : ", transaction.from );
@@ -296,12 +302,12 @@ customWsProvider.on("pending", (tx) => {
           const buyGasLimit = transaction.gasLimit.mul(BUY_GASLIMIT_BOOST);
           const sellGasPrice = calculate_gas_price("sell",transaction.gasPrice)
 
-          console.log("***290:GONNA buy: buyGasPrice:",ethers.utils.formatUnits(buyGasPrice, 'gwei'), " gaslimit:", buyGasLimit.toString());
+          console.log("***305:GONNA buy: buyGasPrice:",ethers.utils.formatUnits(buyGasPrice, 'gwei'), " gaslimit:", buyGasLimit.toString());
           // after calculating the gas price we buy the token
           await buyToken(account,tokenAddress,transaction.gasLimit,buyGasPrice, swapFunc);//transaction.gasLimit
           // after buying the token we sell it
           console.log(""); 
-          console.log("**295:GONNA sell: sellGasPrice",ethers.utils.formatUnits(sellGasPrice, 'gwei'),'gaslimit:', transaction.gasLimit.toString());
+          console.log("**310:GONNA sell: sellGasPrice",ethers.utils.formatUnits(sellGasPrice, 'gwei'),'gaslimit:', transaction.gasLimit.toString());
           await sellToken(account,tokenAddress,transaction.gasLimit,sellGasPrice)
           console.log("************************ COMPLETE **************************")
           console.log("");
